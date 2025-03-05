@@ -12,10 +12,10 @@
     设计：入参token，根据token转userid，查聊天信息表联记录表，反聊天信息
 
 ### 开始聊天接口  `POST` `/chat/start`
-    设计：入参token等 ，在聊天表新建数据，反创建websocket的token，token有过期机制，超时的聊天token不通过
-
+    设计：入参usertoken ，在聊天表新建数据，通过usertoken创建sockettoken，反roomId，token
+    连接实例：ws://localhost:1024/chat/socket?token=d6e6287e-c8bf-4d4f-84f7-7e1b4222b634
 ### websocket接口 `WS` `/chat/socket?token=`
     设计：token由开始接口或其他需要的接口通过类（SocketTokenManager）方法调用创建，具有过期机制
-    生命周期：Created：根据usertoken和token鉴权，根据token拿roomid，反room信息
+    生命周期：Created：根据token鉴权
             Message：根据json数据区分变化和聊天
 
