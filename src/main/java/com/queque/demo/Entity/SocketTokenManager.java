@@ -1,5 +1,6 @@
 package com.queque.demo.Entity;
 
+import org.springframework.util.StringUtils;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.HashMap;
@@ -10,8 +11,10 @@ public class SocketTokenManager {
     private static final Map<String, WebSocketSession> sessionMap = new HashMap<>();
 
     // 生成 Token（外部 Server 调用）
-    public static String createToken() {
-        String token = UUID.randomUUID().toString().replace("-", "");
+    public static String createToken(String token) {
+        if(StringUtils.isEmpty(token)){
+            token = UUID.randomUUID().toString().replace("-", "");
+        }
         sessionMap.put(token, null); // 先存 Token，Session 为空
         return token;
     }

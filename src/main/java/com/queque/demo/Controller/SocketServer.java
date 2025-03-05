@@ -1,7 +1,13 @@
 package com.queque.demo.Controller;
 
+import com.queque.demo.Entity.ChatRoom;
+import com.queque.demo.Entity.ChatRoomManager;
+import com.queque.demo.Entity.Message;
 import com.queque.demo.Entity.SocketTokenManager;
+import com.queque.demo.Mapper.MessageMapper;
+import com.queque.demo.Mapper.UserMapper;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
@@ -15,11 +21,15 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @EnableWebSocket
 public class SocketServer extends TextWebSocketHandler implements WebSocketConfigurer {
-
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private MessageMapper messageMapper;
     @PostConstruct
     public void init() {
         System.out.println("WebSocket 服务器已启动...");
@@ -57,8 +67,18 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
         System.out.println("收到消息：" + message.getPayload());
         Map<String, Object> attributes = session.getAttributes();
         String token = (String) attributes.get("token");
-        session.sendMessage(new TextMessage("收到消息，token：" + token));
+        Message message1=new Message();
+        message1.preaseMessage(message.getPayload());
+        Long userId = userMapper.getUserIdFromToken(token);
+        System.out.println("userid：" + userId);
+        message1.setUserid(String.valueOf(userId));
+        Optional<ChatRoom> chatRoom=ChatRoomManager.getByusertoken(token);
+        System.out.println("chatroom：" + chatRoom);
+        message1.setRoomId(chatRoom.get().getRoomId());
+        messageMapper.insertMessage(message1);
 
+
+        session.sendMessage(new TextMessage("收到消息：" + message1.toString()));
 
 
 
