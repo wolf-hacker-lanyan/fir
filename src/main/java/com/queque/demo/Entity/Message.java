@@ -62,15 +62,16 @@ public class Message {
 
     @Override
     public String toString() {
-        return "Message{" +
-                "roomId='" + roomId + '\'' +
-                ", textContent='" + textContent + '\'' +
-                ", msgTyoe='" + msgType + '\'' +
-                ", userid='" + userid + '\'' +
-                ", sendTime=" + sendTime +
-                ", sendTimeTS=" + sendTimeTS +
-                '}';
+        return "{" +
+                "\"roomId\":\"" + roomId + "\"," +
+                "\"textContent\":\"" + textContent + "\"," +
+                "\"msgType\":\"" + msgType + "\"," +
+                "\"userid\":\"" + userid + "\"," +
+                "\"sendTime\":\"" + sendTime.toString() + "\"," +
+                "\"sendTimeTS\":" + sendTimeTS +
+                "}";
     }
+
 
     public void preaseMessage(String message){
         try {

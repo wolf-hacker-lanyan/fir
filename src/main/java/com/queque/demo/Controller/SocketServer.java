@@ -58,7 +58,7 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
         }
 
         System.out.println("WebSocket 连接建立：" + token);
-        session.sendMessage(new TextMessage("连接成功，token：" + token));
+//        session.sendMessage(new TextMessage("连接成功，token：" + token));
     }
 
     // 处理 WebSocket 消息
@@ -69,7 +69,7 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
         String token = (String) attributes.get("token");
         Message message1=new Message();
         message1.preaseMessage(message.getPayload());
-        Long userId = userMapper.getUserIdFromToken(token);
+        String userId = userMapper.getUserIdFromToken(token);
         System.out.println("userid：" + userId);
         message1.setUserid(String.valueOf(userId));
         Optional<ChatRoom> chatRoom=ChatRoomManager.getByusertoken(token);
@@ -78,7 +78,7 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
         messageMapper.insertMessage(message1);
 
 
-        session.sendMessage(new TextMessage("收到消息：" + message1.toString()));
+        session.sendMessage(new TextMessage(message1.toString()));//收到消息
 
 
 

@@ -28,7 +28,7 @@ public class UserService {
 
         // 登录成功，更新登录时间
         user.setLastLoginTime(Timestamp.valueOf(LocalDateTime.now()));
-        userMapper.updateLoginTime(user.getId(), user.getLastLoginTime());
+        userMapper.updateLoginTime(user.getUserid(), user.getLastLoginTime());
 
         return user;
     }
@@ -44,7 +44,7 @@ public class UserService {
             //遍历技能组ID，检查技能组是否存在
             System.out.println("遍历技能组ID，检查技能组是否存在");
 
-            if (userMapper.findSkillGroupById(Long.valueOf(user.getSkillGroup_id())) == null) {
+            if (userMapper.findSkillGroupById(user.getSkillGroup_id()) == null) {
                 throw new RuntimeException("提供的技能组有不存在的");
             }
 
@@ -54,6 +54,10 @@ public class UserService {
 //        String password_md5 = DigestUtils.sha256Hex(user.getPassword());
 //
 //        user.setPassword(password_md5);
+
+        //生成一个token
+        user.setToken(java.util.UUID.randomUUID().toString());
+
         userMapper.insertUser(user);
     }
 

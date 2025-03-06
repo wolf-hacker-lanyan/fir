@@ -20,6 +20,15 @@ public class User {
     private Double saturation;
     private Boolean isAvailable;
     private String shiftStatus;
+    private String userid;
+
+    public String getUserid() {
+        return userid;
+    }
+
+    public void setUserid(String userid) {
+        this.userid = userid;
+    }
 
     public String getNickname() {
         return nickname;

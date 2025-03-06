@@ -80,7 +80,7 @@ public class UserController {
 
             if ("servicer".equals(user.getUserType())) {
                 //循环遍历技能组ID，查询技能组名称
-                response.put("skillgroup_name", userMapper.findSkillGroupById(Long.valueOf(user.getSkillGroup_id())).getName());
+                response.put("skillgroup_name", userMapper.findSkillGroupById(user.getSkillGroup_id()).getName());
             }
             return ResponseEntity.ok(new ApiResponse<>(1, response, "登录成功"));
 
@@ -99,7 +99,7 @@ public class UserController {
         }
 
         // 从 token 中解析出用户ID
-        Long userId;
+        String userId;
         try {
             userId = userMapper.getUserIdFromToken(token);
         } catch (Exception e) {
@@ -157,7 +157,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "无效的令牌"));
         }
 
-        Long userId;
+        String userId;
         try {
             userId = userMapper.getUserIdFromToken(token);
         } catch (Exception e) {

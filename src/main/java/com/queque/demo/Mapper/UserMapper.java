@@ -19,23 +19,23 @@ public interface UserMapper {
     User findByUsername(String username);
 
     // 根据用户ID查询用户
-    @Select("SELECT * FROM users WHERE id = #{id}")
-    User findById(Long id);
+    @Select("SELECT * FROM users WHERE userid = #{userid}")
+    User findById(String userid);
 
     // 插入新用户
-    @Insert("INSERT INTO users(username, nickname, password, token, status, skill_group_id, maxAssignedTasks, currentAssignedTasks, saturation, isAvailable, shiftStatus ,userType) VALUES(#{username}, #{nickname}, #{password}, #{token}, #{status}, #{skill_group_id}, #{maxAssignedTasks}, #{currentAssignedTasks}, #{saturation}, #{isAvailable}, #{shiftStatus}, #{userType})")
+    @Insert("INSERT INTO users(userid,username, nickname, password, token, status, skill_group_id, maxAssignedTasks, currentAssignedTasks, saturation, isAvailable, shiftStatus ,userType) VALUES(#{userid},#{username}, #{nickname}, #{password}, #{token}, #{status}, #{skill_group_id}, #{maxAssignedTasks}, #{currentAssignedTasks}, #{saturation}, #{isAvailable}, #{shiftStatus}, #{userType})")
     void insertUser(User user);
     // 更新用户信息
-    @Update("UPDATE users SET username = #{username}, nickname=#{nickname}, password = #{password}, token = #{token}, status = #{status},  skill_group_id = #{skill_group_id}, maxAssignedTasks = #{maxAssignedTasks}, currentAssignedTasks = #{currentAssignedTasks}, saturation = #{saturation}, isAvailable = #{isAvailable}, shiftStatus = #{shiftStatus} WHERE id = #{id}")
+    @Update("UPDATE users SET userid = #{userid},username = #{username}, nickname=#{nickname}, password = #{password}, token = #{token}, status = #{status},  skill_group_id = #{skill_group_id}, maxAssignedTasks = #{maxAssignedTasks}, currentAssignedTasks = #{currentAssignedTasks}, saturation = #{saturation}, isAvailable = #{isAvailable}, shiftStatus = #{shiftStatus} WHERE id = #{id}")
     void updateUser(User user);
 
     // 更新用户的登录时间
-    @Update("UPDATE users SET lastLoginTime = #{lastLoginTime} WHERE id = #{id}")
-    void updateLoginTime(@Param("id") Long id, @Param("lastLoginTime") Timestamp lastLoginTime);
+    @Update("UPDATE users SET lastLoginTime = #{lastLoginTime} WHERE userid = #{userid}")
+    void updateLoginTime(@Param("userid") String userid, @Param("lastLoginTime") Timestamp lastLoginTime);
 
     //获取技能组by id
     @Select("SELECT * FROM skill_groups WHERE id = #{id}")
-    SkillGroup findSkillGroupById(Long id);
+    SkillGroup findSkillGroupById(String id);
 
     //获取全部技能组
     @Select("SELECT * FROM skill_groups")
@@ -46,7 +46,7 @@ public interface UserMapper {
     Permissions findPermissionByName(String name);
 
     //getUserIdFromToken
-    @Select("SELECT id FROM users WHERE token = #{token}")
-    Long getUserIdFromToken(String token);
+    @Select("SELECT userid FROM users WHERE token = #{token}")
+    String getUserIdFromToken(String token);
 }
 

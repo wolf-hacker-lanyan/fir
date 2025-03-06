@@ -11,6 +11,15 @@ public class ChatRoom {
     private long starttime;
     private long endtime;
     private long creattime;
+    private String skill_group_id;
+
+    public String getSkill_group_id() {
+        return skill_group_id;
+    }
+
+    public void setSkill_group_id(String skill_group_id) {
+        this.skill_group_id = skill_group_id;
+    }
 
     @Override
     public String toString() {
@@ -25,6 +34,7 @@ public class ChatRoom {
                 ", starttime=" + starttime +
                 ", endtime=" + endtime +
                 ", creattime=" + creattime +
+                ", skill_group_id='" + skill_group_id + '\'' +
                 '}';
     }
 
