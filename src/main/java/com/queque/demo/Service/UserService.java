@@ -44,7 +44,7 @@ public class UserService {
             //遍历技能组ID，检查技能组是否存在
             System.out.println("遍历技能组ID，检查技能组是否存在");
 
-            if (userMapper.findSkillGroupById(user.getSkillGroup_id()) == null) {
+            if (userMapper.getSkillGroupById(user.getSkillGroup_id()) == null) {
                 throw new RuntimeException("提供的技能组有不存在的");
             }
 

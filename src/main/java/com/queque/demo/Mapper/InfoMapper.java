@@ -8,8 +8,10 @@ import java.util.Map;
 
 @Mapper
 public interface InfoMapper {
-    @Select("SELECT * FROM agents")
+
+    @Select("SELECT * FROM agent")
     List<Map> getAgentInfo();
+
 
     @Select("SELECT * FROM waitusers")
     List<Map> getWaitUserInfo();

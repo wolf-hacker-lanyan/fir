@@ -100,7 +100,7 @@ public class ChatController {
             String username = user.getUsername();
 
             String agentname = (chatRoom.getAgentid() != null) ? userMapper.findById(chatRoom.getAgentid()).getUsername() : "未分配";
-            String skillgroupname = (chatRoom.getSkill_group_id() != null) ? userMapper.findSkillGroupById(chatRoom.getSkill_group_id()).getName() : "未分配";
+            String skillgroupname = (chatRoom.getSkill_group_id() != null) ? userMapper.getSkillGroupById(chatRoom.getSkill_group_id()).getName() : "未分配";
 
 
             result.put("roomId", chatRoom.getRoomId());

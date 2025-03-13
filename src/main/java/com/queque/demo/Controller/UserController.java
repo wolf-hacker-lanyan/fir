@@ -78,9 +78,9 @@ public class UserController {
             response.put("token", user.getToken());
             response.put("result", result);
 
-            if ("servicer".equals(user.getUserType())) {
+            if ("agent".equals(user.getUserType())) {
                 //循环遍历技能组ID，查询技能组名称
-                response.put("skillgroup_name", userMapper.findSkillGroupById(user.getSkillGroup_id()).getName());
+                response.put("skillgroup_name", userMapper.getSkillGroupById(user.getSkillGroup_id()).getName());
             }
             return ResponseEntity.ok(new ApiResponse<>(1, response, "登录成功"));
 

@@ -23,10 +23,10 @@ public interface UserMapper {
     User findById(String userid);
 
     // 插入新用户
-    @Insert("INSERT INTO users(userid,username, nickname, password, token, status, skill_group_id, maxAssignedTasks, currentAssignedTasks, saturation, isAvailable, shiftStatus ,userType) VALUES(#{userid},#{username}, #{nickname}, #{password}, #{token}, #{status}, #{skill_group_id}, #{maxAssignedTasks}, #{currentAssignedTasks}, #{saturation}, #{isAvailable}, #{shiftStatus}, #{userType})")
+    @Insert("INSERT INTO users(userid,username, nickname, password, token, status, userType) VALUES(#{userid},#{username}, #{nickname}, #{password}, #{token}, #{status}, #{userType})")
     void insertUser(User user);
     // 更新用户信息
-    @Update("UPDATE users SET userid = #{userid},username = #{username}, nickname=#{nickname}, password = #{password}, token = #{token}, status = #{status},  skill_group_id = #{skill_group_id}, maxAssignedTasks = #{maxAssignedTasks}, currentAssignedTasks = #{currentAssignedTasks}, saturation = #{saturation}, isAvailable = #{isAvailable}, shiftStatus = #{shiftStatus} WHERE id = #{id}")
+    @Update("UPDATE users SET userid = #{userid},username = #{username}, nickname=#{nickname}, password = #{password}, token = #{token}, status = #{status}, isAvailable = #{isAvailable}, shiftStatus = #{shiftStatus} WHERE id = #{id}")
     void updateUser(User user);
 
     // 更新用户的登录时间
@@ -35,11 +35,11 @@ public interface UserMapper {
 
     //获取技能组by id
     @Select("SELECT * FROM skill_groups WHERE id = #{id}")
-    SkillGroup findSkillGroupById(String id);
+    SkillGroup getSkillGroupById(String id);
 
     //获取全部技能组
     @Select("SELECT * FROM skill_groups")
-    List<SkillGroup> findAllSkillGroup();
+    List<SkillGroup> getAllSkillGroup();
 
     //获取权限组by id
     @Select("SELECT * FROM permissions WHERE name = #{name}")
