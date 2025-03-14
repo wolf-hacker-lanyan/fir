@@ -8,6 +8,15 @@ public class Agent {
     private double saturation;
     private boolean isOnline;
     private String state;
+    private String avgscore;
+
+    public String getAvgscore() {
+        return avgscore;
+    }
+
+    public void setAvgscore(String avgscore) {
+        this.avgscore = avgscore;
+    }
 
     public String getState() {
         return state;

@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class SocketTokenManager {
-    private static final Map<String, WebSocketSession> sessionMap = new HashMap<>();
+    public static final Map<String, WebSocketSession> sessionMap = new HashMap<>();
 
     // 生成 Token（外部 Server 调用）
     public static String createToken(String token) {

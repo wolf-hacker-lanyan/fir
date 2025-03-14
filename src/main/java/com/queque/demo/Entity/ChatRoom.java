@@ -12,6 +12,15 @@ public class ChatRoom {
     private long endtime;
     private long creattime;
     private String skill_group_id;
+    private int priority;
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
 
     public String getSkill_group_id() {
         return skill_group_id;
@@ -35,6 +44,7 @@ public class ChatRoom {
                 ", endtime=" + endtime +
                 ", creattime=" + creattime +
                 ", skill_group_id='" + skill_group_id + '\'' +
+                ", priority=" + priority +
                 '}';
     }
 

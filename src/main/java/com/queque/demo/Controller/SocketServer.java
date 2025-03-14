@@ -1,11 +1,14 @@
 package com.queque.demo.Controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.queque.demo.Entity.ChatRoom;
 import com.queque.demo.Entity.ChatRoomManager;
 import com.queque.demo.Entity.Message;
 import com.queque.demo.Entity.SocketTokenManager;
 import com.queque.demo.Mapper.MessageMapper;
 import com.queque.demo.Mapper.UserMapper;
+import com.queque.demo.Mapper.VirtualQueueMapper;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +33,8 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
     private UserMapper userMapper;
     @Autowired
     private MessageMapper messageMapper;
+    @Autowired
+    private VirtualQueueMapper virtualQueueMapper;
     @PostConstruct
     public void init() {
         System.out.println("WebSocket 服务器已启动...");
@@ -61,10 +66,34 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
 //        session.sendMessage(new TextMessage("连接成功，token：" + token));
     }
 
+
+
     // 处理 WebSocket 消息
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws IOException {
-        System.out.println("收到消息：" + message.getPayload());
+        String payload = message.getPayload();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(payload);
+
+
+        System.out.println("收到消息：" + payload);
+
+        // 处理心跳消息
+        if (jsonNode.has("type")) {
+            String type = jsonNode.get("type").asText();
+            if ("pong".equals(type)) {
+                // 更新用户的活跃状态
+                virtualQueueMapper.updateActiveTime(session.getId(), (int) System.currentTimeMillis());
+                System.out.println("收到心跳响应from session: " + session.getId());
+                return;
+            } else if ("ping".equals(type)) {
+                // 客户端发送ping，服务端回应pong
+                session.sendMessage(new TextMessage("{\"type\":\"pong\"}"));
+                return;
+            }
+        }
+
+        // 原本的逻辑
         Map<String, Object> attributes = session.getAttributes();
         String token = (String) attributes.get("token");
         Message message1=new Message();

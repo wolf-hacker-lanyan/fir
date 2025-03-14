@@ -1,5 +1,6 @@
 package com.queque.demo.Mapper;
 
+import com.queque.demo.Entity.Agent;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -42,4 +43,26 @@ public interface AgentMapper {
     //更改客服的技能组
     @Update("UPDATE agent SET skill_group_id = #{skill_group_id} WHERE agentId = #{agentId}")
     void setSkillGroup(String agentId, String skill_group_id);
+
+
+    //获取某个技能组的客服(高评价降序)
+    @Select("SELECT * FROM agent WHERE skill_group_id = #{skill_group_id} ORDER BY avgscore DESC")
+    List<Map> getAgentInfoBySkillGroupIdOrdByAvgscore(String skill_group_id);
+    //获取某个技能组的空闲客服(高评价降序)
+    @Select("SELECT * FROM agent WHERE skill_group_id = #{skill_group_id} AND state = 'idle' ORDER BY avgscore DESC")
+    List<Agent> getFreeAgentInfoBySkillGroupIdOrdByAvgscore(String skill_group_id);
+    //获取空闲客服(高评价降序)
+    @Select("SELECT * FROM agent WHERE state = 'idle' ORDER BY avgscore DESC")
+    List<Agent> getFreeAgentInfoOrdByAvgscore();
+
+
+    //获取某个技能组的客服(低饱和度优先)
+    @Select("SELECT * FROM agent WHERE skill_group_id = #{skill_group_id} ORDER BY saturation ASC")
+    List<Map> getAgentInfoBySkillGroupIdOrdBySaturation(String skill_group_id);
+    //获取某个技能组的空闲客服(低饱和度优先)
+    @Select("SELECT * FROM agent WHERE skill_group_id = #{skill_group_id} AND state = 'idle' ORDER BY saturation ASC")
+    List<Agent> getFreeAgentInfoBySkillGroupIdOrdBySaturation(String skill_group_id);
+    //获取空闲客服(低饱和度优先)
+    @Select("SELECT * FROM agent WHERE state = 'idle' ORDER BY saturation ASC")
+    List<Agent> getFreeAgentInfoOrdBySaturation();
 }
