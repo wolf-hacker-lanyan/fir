@@ -10,10 +10,12 @@ import com.queque.demo.Mapper.MessageMapper;
 import com.queque.demo.Mapper.UserMapper;
 import com.queque.demo.Mapper.VirtualQueueMapper;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -53,7 +55,9 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
     public void afterConnectionEstablished(WebSocketSession session) throws IOException {
         // 获取 token
         Map<String, Object> attributes = session.getAttributes();
+        System.out.println("attributes：" + attributes);
         String token = (String) attributes.get("token");
+//        String roomId = (String) attributes.get("roomId");
 
         if (token == null || !SocketTokenManager.bindSession(token, session)) {
             System.out.println("WebSocket token不合法：" + token);
@@ -62,7 +66,7 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
             return;
         }
 
-        System.out.println("WebSocket 连接建立：" + token);
+        System.out.println("WebSocket 连接建立：" + token );
 //        session.sendMessage(new TextMessage("连接成功，token：" + token));
     }
 
@@ -78,9 +82,10 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
 
         System.out.println("收到消息：" + payload);
 
-        // 处理心跳消息
+        // 处理心跳和系统消息
         if (jsonNode.has("type")) {
             String type = jsonNode.get("type").asText();
+            String roomId = jsonNode.get("roomId").asText();
             if ("pong".equals(type)) {
                 // 更新用户的活跃状态
                 virtualQueueMapper.updateActiveTime(session.getId(), (int) System.currentTimeMillis());
@@ -90,24 +95,57 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
                 // 客户端发送ping，服务端回应pong
                 session.sendMessage(new TextMessage("{\"type\":\"pong\"}"));
                 return;
+            } else if ("system".equals(type)) {
+                String userId = "system";
+                Message message1 = new Message();
+                message1.preaseMessage(message.getPayload());
+                message1.setUserid(userId);
+                message1.setRoomId(roomId);
+                System.out.println("message1：" + message1);
+                messageMapper.insertMessage(message1);
+                return;
             }
         }
 
-        // 原本的逻辑
+        //获取roomid,将消息广播给所有同样roomid的用户
         Map<String, Object> attributes = session.getAttributes();
+        String roomId = (String) attributes.get("roomId");
+        System.out.println("roomId：" + roomId);
+        for (Map.Entry<String, WebSocketSession> entry : SocketTokenManager.sessionMap.entrySet()) {
+
+            WebSocketSession session1 = entry.getValue();
+            System.out.println("遍历session：" + session1);
+            Map<String, Object> attributes1 = session1.getAttributes();
+            String roomId1 = (String) attributes1.get("roomId");
+            if (roomId.equals(roomId1)) {
+                session1.sendMessage(new TextMessage(message.getPayload()));
+            }
+        }
+
         String token = (String) attributes.get("token");
         Message message1=new Message();
         message1.preaseMessage(message.getPayload());
         String userId = userMapper.getUserIdFromToken(token);
-        System.out.println("userid：" + userId);
         message1.setUserid(String.valueOf(userId));
-        Optional<ChatRoom> chatRoom=ChatRoomManager.getByusertoken(token);
-        System.out.println("chatroom：" + chatRoom);
-        message1.setRoomId(chatRoom.get().getRoomId());
+        message1.setRoomId(roomId);
         messageMapper.insertMessage(message1);
 
 
-        session.sendMessage(new TextMessage(message1.toString()));//收到消息
+        // 原本的逻辑
+//        String token = (String) attributes.get("token");
+////        String roomId = (String) attributes.get("roomId");
+//        Message message1=new Message();
+//        message1.preaseMessage(message.getPayload());
+//        String userId = userMapper.getUserIdFromToken(token);
+//        System.out.println("userid：" + userId);
+//        message1.setUserid(String.valueOf(userId));
+//        Optional<ChatRoom> chatRoom=ChatRoomManager.getByusertoken(token);
+//        System.out.println("chatroom：" + chatRoom);
+//        message1.setRoomId(chatRoom.get().getRoomId());
+//        messageMapper.insertMessage(message1);
+//
+//
+//        session.sendMessage(new TextMessage(message1.toString()));//收到消息
 
 
 
@@ -120,6 +158,10 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
         // 通过 session 找到对应的 token 并移除
         SocketTokenManager.removeSession(session.getId());
+        String token = (String) session.getAttributes().get("token");
+        String userId = userMapper.getUserIdFromToken(token);
+        //记录最后一次活跃时间
+        virtualQueueMapper.updateActiveTime(session.getId(), (int) System.currentTimeMillis());
         System.out.println("WebSocket 连接关闭：" + session.getId());
     }
 
@@ -142,14 +184,17 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
         @Override
         public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
             // 获取查询参数中的 token
-            String token = request.getURI().getQuery();
-            if (token != null && token.contains("token=")) {
-                token = token.split("=")[1];
-                // 验证 token 是否有效
-//                System.out.println(" token：" + token);
+//            String token = request.getURI().getQuery();
+            if (request instanceof ServletServerHttpRequest) {
+                ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
+                HttpServletRequest httpRequest = servletRequest.getServletRequest();
+
+                String token = httpRequest.getParameter("token");
+                String roomId = httpRequest.getParameter("roomId");
 
                 if (SocketTokenManager.isValidToken(token)) {
                     attributes.put("token", token);  // 将 token 存入 attributes
+                    attributes.put("roomId", roomId); // 确保 roomId 也存入 attributes
                     return true;  // token 验证成功，允许连接
                 } else {
                     response.setStatusCode(HttpStatus.FORBIDDEN); // 设置为 403 Forbidden

@@ -28,12 +28,12 @@ public class Message {
         this.textContent = textContent;
     }
 
-    public String getMsgTyoe() {
+    public String getMsgType() {
         return msgType;
     }
 
-    public void setMsgTyoe(String msgTyoe) {
-        this.msgType = msgTyoe;
+    public void setMsgType(String msgType) {
+        this.msgType = msgType;
     }
 
     public String getUserid() {

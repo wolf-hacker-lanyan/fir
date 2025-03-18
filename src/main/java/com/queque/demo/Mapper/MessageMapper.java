@@ -16,4 +16,8 @@ public interface MessageMapper {
     List<Map> getAllMessage();
     @Insert("INSERT INTO chat(roomId, textContent, msgType, userid, sendTimeTS, sendTime) VALUES(#{roomId}, #{textContent}, #{msgType}, #{userid}, #{sendTimeTS}, #{sendTime})")
     void insertMessage(Message message);
+
+    //获取某个房间的全部消息
+    @Select("SELECT * FROM chat WHERE roomId = #{roomId}")
+    List<Message> getMessageByRoomId(String roomId);
 }

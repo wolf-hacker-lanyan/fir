@@ -48,6 +48,8 @@ public class ChatRoom {
                 '}';
     }
 
+
+
     public String getRoomId() {
         return roomId;
     }

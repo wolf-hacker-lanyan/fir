@@ -61,6 +61,24 @@ public class UserController {
         return token;
     }
 
+    // 获取用户id
+    @PostMapping("/getuserid")
+    public ResponseEntity<?> getUserId(HttpServletRequest request) {
+        String token = extractToken(request);
+        if (token == null || token.equals("null")) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "无效的令牌"));
+        }
+
+        String userId;
+        try {
+            userId = userMapper.getUserIdFromToken(token);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "无效的令牌"));
+        }
+
+        return ResponseEntity.ok(new ApiResponse<>(1, userId, "获取用户ID成功"));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map request) {
         Map response = new java.util.HashMap();
@@ -73,7 +91,7 @@ public class UserController {
 //            response.put("user", user);
             result.put("id", user.getId());
             result.put("name", user.getUsername());
-            result.put("roles", new String[]{user.getUserType()});
+            result.put("roles", user.getUserType());
 
             response.put("token", user.getToken());
             response.put("result", result);
@@ -178,6 +196,24 @@ public class UserController {
             user.setPassword(newPassword);
             userMapper.updateUser(user);
             return ResponseEntity.ok(new ApiResponse<>(1, null, "修改密码成功"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
+    //通过用户id获取用户信息
+    @PostMapping("/getinfobyid")
+    public ResponseEntity<?> getUserInfo(@RequestBody Map request) {
+        Map result = new java.util.HashMap();
+        String userId = request.get("userId").toString();
+        try {
+            User user = userMapper.findById(userId);
+            if (user == null) {
+                return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "用户不存在"));
+            }
+            result.put("id", user.getId());
+            result.put("name", user.getUsername());
+            return ResponseEntity.ok(new ApiResponse<>(1, result, "获取用户信息成功"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
         }

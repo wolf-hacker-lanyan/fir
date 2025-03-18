@@ -18,8 +18,8 @@ import java.util.Map;
 public class InfoController {
     @Autowired
     private InfoMapper infoMapper;
+    @Autowired
     private UserMapper userMapper;
-    //1
 
     @PostMapping("/agent")
     public ResponseEntity<?> getagentinfo() {

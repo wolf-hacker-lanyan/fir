@@ -40,7 +40,7 @@ public class UserService {
             System.out.println("get_user");
             throw new RuntimeException("用户名已经存在");
         }
-        if ("servicer".equals(user.getUserType())) {//user && servicer
+        if ("agent".equals(user.getUserType())) {//user && agent
             //遍历技能组ID，检查技能组是否存在
             System.out.println("遍历技能组ID，检查技能组是否存在");
 
@@ -50,21 +50,18 @@ public class UserService {
 
         }
 
-//        //将密码加密
-//        String password_md5 = DigestUtils.sha256Hex(user.getPassword());
-//
-//        user.setPassword(password_md5);
+        //将密码加密
+        String password_md5 = DigestUtils.sha256Hex(user.getPassword());
+
+        user.setPassword(password_md5);
 
         //生成一个token
         user.setToken(java.util.UUID.randomUUID().toString());
+        user.setUserid(java.util.UUID.randomUUID().toString());
 
         userMapper.insertUser(user);
     }
 
-
-
-
-    // 其他业务逻辑
 }
 
 

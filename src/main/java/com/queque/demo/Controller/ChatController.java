@@ -3,7 +3,9 @@ package com.queque.demo.Controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.queque.demo.Entity.*;
+import com.queque.demo.Mapper.AgentMapper;
 import com.queque.demo.Mapper.ChatRoomMapper;
+import com.queque.demo.Mapper.MessageMapper;
 import com.queque.demo.Mapper.UserMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,10 @@ public class ChatController {
     private UserMapper userMapper;
     @Autowired
     private ChatRoomMapper chatRoomMapper;
+    @Autowired
+    private AgentMapper agentMapper;
+    @Autowired
+    private MessageMapper messageMapper;
     //获取用户token的方法
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
@@ -67,7 +73,8 @@ public class ChatController {
             ChatRoom chatRoom=new ChatRoom();
             chatRoom.setRoomId(roomid);
             chatRoom.setUserid(String.valueOf(userId));
-            chatRoom.setCreattime(new Date().getTime());
+            chatRoom.setCreattime(System.currentTimeMillis());
+            chatRoom.setState("waiting");
             chatRoomMapper.insertChatRoom(chatRoom);
             result.put("token", SocketTokenManager.createToken(token));
             result.put("roomId", roomid);
@@ -105,8 +112,11 @@ public class ChatController {
 
             result.put("roomId", chatRoom.getRoomId());
             result.put("username", username);
+            result.put("userid", chatRoom.getUserid());
             result.put("agentname", agentname);
+            result.put("agentid", chatRoom.getAgentid());
             result.put("creattime", chatRoom.getCreattime());
+            result.put("starttime", chatRoom.getStarttime());
             result.put("state", chatRoom.getState());
             result.put("endtime", chatRoom.getEndtime());
             result.put("skillgroupname", skillgroupname);
@@ -116,6 +126,55 @@ public class ChatController {
 
             // 返回成功响应
             return ResponseEntity.ok(new ApiResponse<>(1, result, "获取聊天室信息成功"));
+
+        } catch (RuntimeException e) {
+            // 自定义业务异常处理
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/done")
+    public ResponseEntity<?> endChatroom(@RequestBody Map requestbody) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            String roomId = requestbody.get("roomId").toString();
+            ChatRoom chatRoom = chatRoomMapper.findByRoomId(roomId);
+            if (chatRoom == null) {
+                return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "聊天室不存在"));
+            }
+            chatRoomMapper.updateRoomState(roomId, "done");
+            chatRoomMapper.updateEndTime(roomId, System.currentTimeMillis());
+            agentMapper.setState(chatRoom.getAgentid(), "idle");
+            // 返回成功响应
+            return ResponseEntity.ok(new ApiResponse<>(1, null, "结束聊天成功"));
+
+        } catch (RuntimeException e) {
+            // 自定义业务异常处理
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/gethistory")
+    public ResponseEntity<?> getChatHistory(@RequestBody Map requestbody) {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> msg = new HashMap<>();
+        try {
+            String roomId = requestbody.get("roomId").toString();
+            ChatRoom chatRoom = chatRoomMapper.findByRoomId(roomId);
+            if (chatRoom == null) {
+                return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "聊天室不存在"));
+            }
+            List<Message> messages = messageMapper.getMessageByRoomId(roomId);
+
+            for (Message message : messages) {
+                msg.put("roomId", message.getRoomId());
+                msg.put("userid", message.getUserid());
+                msg.put("msgType", message.getMsgType());
+                msg.put("textContent", message.getTextContent());
+            }
+            // 返回成功响应
+            return ResponseEntity.ok(new ApiResponse<>(1, messages, "获取聊天记录成功"));
 
         } catch (RuntimeException e) {
             // 自定义业务异常处理

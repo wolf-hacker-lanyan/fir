@@ -1,9 +1,12 @@
 package com.queque.demo.Entity;
 
+import org.apache.ibatis.annotations.Mapper;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
+@Component
 public class ChatRoomManager {
     private static final List<ChatRoom> chatRooms = new ArrayList<>();
     // 添加房间信息
@@ -21,17 +24,10 @@ public class ChatRoomManager {
                 .findFirst();
     }
 
-    // 通过 roomId 获取 userId 和 agentId
-    public Optional<ChatRoom> getByRoomId(String roomId) {
-        return chatRooms.stream()
-                .filter(entry -> entry.getRoomId().equals(roomId))
-                .findFirst();
-    }
-
     // 通过 userId 获取 roomId 和 agentId
-    public Optional<ChatRoom> getByUserId(String userId) {
+    public static Optional<ChatRoom> getByUserId(String userid) {
         return chatRooms.stream()
-                .filter(entry -> entry.getUserid().equals(userId))
+                .filter(entry -> userid != null && userid.equals(entry.getUserid()))
                 .findFirst();
     }
 
@@ -39,6 +35,13 @@ public class ChatRoomManager {
     public Optional<ChatRoom> getByAgentId(String agentId) {
         return chatRooms.stream()
                 .filter(entry -> entry.getAgentid().equals(agentId))
+                .findFirst();
+    }
+
+    // 通过 type 获取 roomId
+    public static Optional<ChatRoom> getByType(String type) {
+        return chatRooms.stream()
+                .filter(entry -> entry.getType().equals(type))
                 .findFirst();
     }
 

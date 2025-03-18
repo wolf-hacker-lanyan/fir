@@ -65,4 +65,5 @@ public interface AgentMapper {
     //获取空闲客服(低饱和度优先)
     @Select("SELECT * FROM agent WHERE state = 'idle' ORDER BY saturation ASC")
     List<Agent> getFreeAgentInfoOrdBySaturation();
+
 }

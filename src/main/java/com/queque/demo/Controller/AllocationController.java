@@ -20,9 +20,13 @@ import java.util.Map;
 public class AllocationController {
     @Autowired
     private AgentMapper agentMapper;
+    @Autowired
     private ChatRoomMapper chatRoomMapper;
+    @Autowired
     private UserMapper userMapper;
+    @Autowired
     private SettingMapper settingMapper;
+    @Autowired
     private VirtualQueueMapper virtualQueueMapper;
 
     /* ==============
@@ -62,7 +66,7 @@ public class AllocationController {
             //超过设定的人数排队，先进入虚拟排队
             if (RoomList.size()>queueLength){
                 virtualQueueMapper.addToVirtualQueue(userid, System.currentTimeMillis());
-                return ResponseEntity.ok(new ApiResponse<>(0, null, "已进入排队队列，请耐心等待"));
+                return ResponseEntity.ok(new ApiResponse<>(1, null, "已进入排队队列，请耐心等待"));
             }
 
             // 获取第一个等待的房间
@@ -78,6 +82,8 @@ public class AllocationController {
                     Agent agent = same_agentList.get(0);
                     chatRoomMapper.assignAgent(chatRoom.getRoomId(), agent.getAgentId());
                     chatRoomMapper.updateRoomState(chatRoom.getRoomId(), "processing");
+                    chatRoomMapper.updateJoinTime(chatRoom.getRoomId(), System.currentTimeMillis());
+                    agentMapper.setState(agent.getAgentId(), "busy");
                     System.out.println("成功分配评分最高的客服");
                     return ResponseEntity.ok(new ApiResponse<>(1, null, "分配成功"));
                     }
@@ -89,6 +95,8 @@ public class AllocationController {
                     Agent agent = Saturation_agentList.get(0);
                     chatRoomMapper.assignAgent(chatRoom.getRoomId(), agent.getAgentId());
                     chatRoomMapper.updateRoomState(chatRoom.getRoomId(), "processing");
+                    agentMapper.setState(agent.getAgentId(), "busy");
+                    chatRoomMapper.updateJoinTime(chatRoom.getRoomId(), System.currentTimeMillis());
                     System.out.println("成功分配饱和度低的客服");
                     return ResponseEntity.ok(new ApiResponse<>(1, null, "分配成功"));
                 }
@@ -98,16 +106,22 @@ public class AllocationController {
                 Agent agent = same_agentList.get(random);
                 chatRoomMapper.assignAgent(chatRoom.getRoomId(), agent.getAgentId());
                 chatRoomMapper.updateRoomState(chatRoom.getRoomId(), "processing");
+                agentMapper.setState(agent.getAgentId(), "busy");
+                chatRoomMapper.updateJoinTime(chatRoom.getRoomId(), System.currentTimeMillis());
                 System.out.println("成功分配随机客服");
                 return ResponseEntity.ok(new ApiResponse<>(1, null, "分配成功"));
             }
 
+            System.out.println("没有空闲同技能组客服");
+
             // 没有空闲“同技能组”客服
             // 是否允许不同技能组接待
+            System.out.println("是否允许不同技能组接待=" + allowDifferentSkillGroup);
             if (allowDifferentSkillGroup) {
                 // 有空闲“不同技能组”客服吗？
                 System.out.println("允许不同技能组接待");
                 List<Agent> diff_agentList = agentMapper.getFreeAgentInfoOrdByAvgscore();
+                System.out.println("diff_agentList: " + diff_agentList);
                 if (!diff_agentList.isEmpty()) {
                     //评分高的客服优先接待？
                     if (priorityHighScore) {
@@ -115,6 +129,8 @@ public class AllocationController {
                         Agent agent = diff_agentList.get(0);
                         chatRoomMapper.assignAgent(chatRoom.getRoomId(), agent.getAgentId());
                         chatRoomMapper.updateRoomState(chatRoom.getRoomId(), "processing");
+                        agentMapper.setState(agent.getAgentId(), "busy");
+                        chatRoomMapper.updateJoinTime(chatRoom.getRoomId(), System.currentTimeMillis());
                         System.out.println("成功分配评分最高的客服");
                         return ResponseEntity.ok(new ApiResponse<>(1, null, "分配成功"));
                     }
@@ -126,6 +142,8 @@ public class AllocationController {
                         Agent agent = Saturation_agentList.get(0);
                         chatRoomMapper.assignAgent(chatRoom.getRoomId(), agent.getAgentId());
                         chatRoomMapper.updateRoomState(chatRoom.getRoomId(), "processing");
+                        agentMapper.setState(agent.getAgentId(), "busy");
+                        chatRoomMapper.updateJoinTime(chatRoom.getRoomId(), System.currentTimeMillis());
                         System.out.println("成功分配饱和度低的客服");
                         return ResponseEntity.ok(new ApiResponse<>(1, null, "分配成功"));
                     }
@@ -135,10 +153,14 @@ public class AllocationController {
                     Agent agent = diff_agentList.get(random);
                     chatRoomMapper.assignAgent(chatRoom.getRoomId(), agent.getAgentId());
                     chatRoomMapper.updateRoomState(chatRoom.getRoomId(), "processing");
+                    agentMapper.setState(agent.getAgentId(), "busy");
+                    chatRoomMapper.updateJoinTime(chatRoom.getRoomId(), System.currentTimeMillis());
                     System.out.println("成功分配随机客服");
                     return ResponseEntity.ok(new ApiResponse<>(1, null, "分配成功"));
                 }
             }
+
+            System.out.println("没有空闲客服");
 
             // 没有空闲客服，进入排队队列
             chatRoomMapper.updateRoomState(chatRoom.getRoomId(), "waiting");
