@@ -1,6 +1,7 @@
 package com.queque.demo.Entity;
 
 public class Agent {
+    private String name;
     private String agentId;
     private String skill_group_id;
     private int maxAssignedTasks;
@@ -12,6 +13,14 @@ public class Agent {
 
     public String getAvgscore() {
         return avgscore;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setAvgscore(String avgscore) {

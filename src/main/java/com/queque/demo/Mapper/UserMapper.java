@@ -48,5 +48,9 @@ public interface UserMapper {
     //getUserIdFromToken
     @Select("SELECT userid FROM users WHERE token = #{token}")
     String getUserIdFromToken(String token);
+
+    //获取全部用户
+    @Select("SELECT * FROM users")
+    List<User> getAllUser();
 }
 

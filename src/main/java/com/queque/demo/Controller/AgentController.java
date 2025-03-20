@@ -21,16 +21,17 @@ import java.util.Map;
 public class AgentController {
     @Autowired
     private AgentMapper agentMapper;
+    @Autowired
     private UserMapper userMapper;
 
     //设置一个用户为客服
     @PostMapping("/add")
     public ResponseEntity<?> addAgent(@RequestBody Map request) {
-        String agentid = request.get("userid").toString();
-        String skill_group_id = request.get("skill_group_id").toString();
+        String agentid = request.get("userId").toString();
+        String skill_group_id = request.get("skillGroupId").toString();
         int maxAssignedTasks = Integer.parseInt(request.get("maxAssignedTasks").toString());//必须大于0
-        int currentAssignedTasks = 0;
-        String state = getState(agentid);
+        int currentAssignedTasks = Integer.parseInt(request.get("currentAssignedTasks").toString());//必须大于等于0
+        String state = String.valueOf(request.get("state"));
 
         if (!(agentMapper.getAgentInfoByUserid(agentid)).isEmpty()) {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "该用户已经是客服"));
@@ -43,6 +44,32 @@ public class AgentController {
         try {
             agentMapper.addAgent(agentid, skill_group_id, maxAssignedTasks, currentAssignedTasks,false, state);
             return ResponseEntity.ok(new ApiResponse<>(1, null, "添加客服成功"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/delete")
+    public ResponseEntity<?> deleteAgent(@RequestBody Map request) {
+        String agentid = request.get("agentId").toString();
+        try {
+            agentMapper.deleteAgent(agentid);
+            return ResponseEntity.ok(new ApiResponse<>(1, null, "删除客服成功"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> updateAgent(@RequestBody Map request) {
+        String agentid = request.get("userId").toString();
+        String skill_group_id = request.get("skillGroupId").toString();
+        int maxAssignedTasks = Integer.parseInt(request.get("maxAssignedTasks").toString());
+        int currentAssignedTasks = Integer.parseInt(request.get("currentAssignedTasks").toString());
+        String state = request.get("state").toString();
+        try {
+            agentMapper.updateAgent(agentid, skill_group_id, maxAssignedTasks, currentAssignedTasks, state);
+            return ResponseEntity.ok(new ApiResponse<>(1, null, "更新客服信息成功"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
         }
@@ -176,6 +203,17 @@ public class AgentController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
         }
+    }
+
+    @PostMapping("/getall")
+    public ResponseEntity<?> getAllAgent() {
+        List<Agent> agents = agentMapper.getAllAgent();
+
+        for (Agent agent : agents) {
+            //遍历多加一个name
+            agent.setName(userMapper.findById(agent.getAgentId()).getUsername());
+        }
+        return ResponseEntity.ok(new ApiResponse<>(1, agents, "获取全部客服成功"));
     }
 
 }

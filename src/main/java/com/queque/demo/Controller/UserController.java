@@ -218,5 +218,21 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
         }
     }
+
+    //获取全部用户
+    @PostMapping("/getall")
+    public ResponseEntity<?> getAllUser() {
+        List<User> users = userMapper.getAllUser();
+        List<Object> userinfo = new java.util.ArrayList<>();
+        //只返回需要的信息
+        for (User user : users) {
+            Map<String, Object> userMap = new java.util.HashMap<>();
+            userMap.put("userid", user.getUserid());
+            userMap.put("name", user.getUsername());
+            userMap.put("usertype", user.getUserType());
+            userinfo.add(userMap);
+        }
+        return ResponseEntity.ok(new ApiResponse<>(1, userinfo, "获取全部用户成功"));
+    }
 }
 

@@ -9,7 +9,7 @@ public class Permissions {
     private Long id;
     private String name;  // 权限名称
     private String description;  // 权限描述
-    private String permission;  // 权限字符串，如 "user:create"
+    private String permissions;  // 权限字符串，如 "user:create"
 
     public Long getId() {
         return id;
@@ -36,10 +36,10 @@ public class Permissions {
     }
 
     public String getPermission() {
-        return permission;
+        return permissions;
     }
 
-    public void setPermission(String permission) {
-        this.permission = permission;
+    public void setPermission(String permissions) {
+        this.permissions = permissions;
     }
 }

@@ -1,16 +1,16 @@
 package com.queque.demo.Mapper;
 
 import com.queque.demo.Entity.Agent;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 import java.util.Map;
 
 @Mapper
 public interface AgentMapper {
+    //获取全部客服
+    @Select("SELECT * FROM agent")
+    List<Agent> getAllAgent();
     //获取客服的最大分配任务数
     @Select("SELECT maxAssignedTasks FROM agent WHERE agentId = #{agentId}")
     int getMaxAssignedTasks(String agentId);
@@ -46,6 +46,14 @@ public interface AgentMapper {
     //更改客服的技能组
     @Update("UPDATE agent SET skill_group_id = #{skill_group_id} WHERE agentId = #{agentId}")
     void setSkillGroup(String agentId, String skill_group_id);
+
+    //通过agentid来删除客服
+    @Delete("DELETE FROM agent WHERE agentId = #{agentId}")
+    void deleteAgent(String agentId);
+
+    //通过agentId来更新整个客服信息
+    @Update("UPDATE agent SET skill_group_id = #{skill_group_id}, maxAssignedTasks = #{maxAssignedTasks}, currentAssignedTasks = #{currentAssignedTasks}, state = #{state} WHERE agentId = #{agentId}")
+    void updateAgent(String agentId, String skill_group_id, int maxAssignedTasks, int currentAssignedTasks, String state);
 
 
     //获取某个技能组的客服(高评价降序)

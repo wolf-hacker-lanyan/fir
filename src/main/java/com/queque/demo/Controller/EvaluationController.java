@@ -107,4 +107,50 @@ public class EvaluationController {
         }
     }
 
+    //获取差评
+    @PostMapping("/get/receive/bad")
+    public ResponseEntity<?> getReceiveBadEvaluation(HttpServletRequest request) {
+        // 获取用户token
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "未提供有效的令牌"));
+        }
+
+        String token = authHeader.substring("Bearer ".length());
+        if ("null".equals(token)) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "无效的令牌"));
+        }
+
+        String receive_userId = userMapper.getUserIdFromToken(token);
+
+        try {
+            return ResponseEntity.ok(new ApiResponse<>(1, evaluationMapper.getBadEvaluationByUserId(receive_userId), "获取收到的差评成功"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
+    //获取有内容的评论
+    @PostMapping("/get/receive/havecontent")
+    public ResponseEntity<?> getReceiveContentEvaluation(HttpServletRequest request) {
+        // 获取用户token
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "未提供有效的令牌"));
+        }
+
+        String token = authHeader.substring("Bearer ".length());
+        if ("null".equals(token)) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "无效的令牌"));
+        }
+
+        String receive_userId = userMapper.getUserIdFromToken(token);
+
+        try {
+            return ResponseEntity.ok(new ApiResponse<>(1, evaluationMapper.getEvaluationWithFeedbackByUserId(receive_userId), "获取收到的有内容的评论成功"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
 }
