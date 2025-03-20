@@ -165,18 +165,20 @@ public class SocketServer extends TextWebSocketHandler implements WebSocketConfi
         System.out.println("WebSocket 连接关闭：" + session.getId());
     }
 
-    // 发送消息给指定 token 的 WebSocketSession
-    public static boolean sendMessage(String token, String message) {
-        WebSocketSession session = SocketTokenManager.getSession(token);
-        if (session != null && session.isOpen()) {
-            try {
-                session.sendMessage(new TextMessage(message));
-                return true;
-            } catch (IOException e) {
-                e.printStackTrace();
+    // 发送消息给指定 roomid 的 WebSocketSession
+    public void broadcastToRoom(String roomId, String message) {
+        // 遍历所有已连接的 WebSocketSession
+        for (WebSocketSession session : SocketTokenManager.sessionMap.values()) {
+            Map<String, Object> attributes = session.getAttributes();
+            String sessionRoomId = (String) attributes.get("roomId");
+            if (sessionRoomId != null && sessionRoomId.equals(roomId)) {
+                try {
+                    session.sendMessage(new TextMessage(message));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         }
-        return false;
     }
     // 自定义 HandshakeInterceptor 用于提取查询参数
     public class HttpHandshakeInterceptor implements HandshakeInterceptor {

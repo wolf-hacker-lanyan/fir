@@ -42,6 +42,8 @@ public class ChatRoomController {
                 }else {
                     chatRoom.setUserid(userMapper.findById(chatRoom.getUserid()).getUsername());
                 }
+                String skillgroupname = (chatRoom.getSkill_group_id() != null) ? userMapper.getSkillGroupById(chatRoom.getSkill_group_id()).getName() : "未分配";
+                chatRoom.setSkill_group_id(skillgroupname);
             }
             return ResponseEntity.ok(new ApiResponse<>(1,list , "获取成功"));
         } catch (RuntimeException e) {
@@ -66,6 +68,8 @@ public class ChatRoomController {
                 }else {
                     chatRoom.setUserid(userMapper.findById(chatRoom.getUserid()).getUsername());
                 }
+                String skillgroupname = (chatRoom.getSkill_group_id() != null) ? userMapper.getSkillGroupById(chatRoom.getSkill_group_id()).getName() : "未分配";
+                chatRoom.setSkill_group_id(skillgroupname);
             }
             return ResponseEntity.ok(new ApiResponse<>(1, list, "获取成功"));
         } catch (RuntimeException e) {
@@ -90,6 +94,41 @@ public class ChatRoomController {
                 }else {
                     chatRoom.setUserid(userMapper.findById(chatRoom.getUserid()).getUsername());
                 }
+                String skillgroupname = (chatRoom.getSkill_group_id() != null) ? userMapper.getSkillGroupById(chatRoom.getSkill_group_id()).getName() : "未分配";
+                chatRoom.setSkill_group_id(skillgroupname);
+            }
+            return ResponseEntity.ok(new ApiResponse<>(1, list, "获取成功"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
+        }
+    }
+
+    //获取已经分配给自己的聊天室
+    @RequestMapping("/get/assigned")
+    public ResponseEntity<?> getAssignedChatRoom(HttpServletRequest request) {
+        String token = request.getHeader("Authorization");
+        if (token == null || !token.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "未提供有效的令牌"));
+        }
+        String userId = userMapper.getUserIdFromToken(token.substring("Bearer ".length()));
+        try {
+            List<ChatRoom> list=chatRoomMapper.getProcessingChatRoomByAgentId(userId);
+            if (list == null) {
+                return ResponseEntity.ok(new ApiResponse<>(1, null, "获取成功"));
+            }
+            for (ChatRoom chatRoom : list) {
+                if (chatRoom.getAgentid() == null) {
+                    chatRoom.setAgentid("null");
+                }else {
+                    chatRoom.setAgentid(userMapper.findById(chatRoom.getAgentid()).getUsername());
+                }
+                if (chatRoom.getUserid() == null) {
+                    chatRoom.setUserid("null");
+                }else {
+                    chatRoom.setUserid(userMapper.findById(chatRoom.getUserid()).getUsername());
+                }
+                String skillgroupname = (chatRoom.getSkill_group_id() != null) ? userMapper.getSkillGroupById(chatRoom.getSkill_group_id()).getName() : "未分配";
+                chatRoom.setSkill_group_id(skillgroupname);
             }
             return ResponseEntity.ok(new ApiResponse<>(1, list, "获取成功"));
         } catch (RuntimeException e) {

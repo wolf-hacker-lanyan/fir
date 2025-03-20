@@ -10,8 +10,8 @@ import java.util.List;
 @Mapper
 public interface EvaluationMapper {
     // 插入一条评价
-    @Insert("INSERT INTO evaluation( userid,send_userid, score, feedback, creattime) VALUES(#{chatid}, #{userid}, #{send_userid}, #{score}, #{feedback}, #{creattime})")
-    void addEvaluation( String userid,String send_userid, int score, String feedback,  String creattime);
+    @Insert("INSERT INTO evaluation(chatid, userid,send_userid, score, feedback, creattime) VALUES(#{chatid}, #{userid}, #{send_userid}, #{score}, #{feedback}, #{creattime})")
+    void addEvaluation( String chatid,String userid,String send_userid, int score, String feedback,  String creattime);
 
     // 获取某位用户发过的评价
     @Select("SELECT * FROM evaluation WHERE send_userid = #{send_userid}")

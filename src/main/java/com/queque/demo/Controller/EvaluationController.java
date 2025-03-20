@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/evaluation")
@@ -42,13 +43,17 @@ public class EvaluationController {
         }
 
         String send_userId = userMapper.getUserIdFromToken(token);
-        String agentId = (String) requestbody.get("agentId");
-        int score = (int) requestbody.get("score");
-        String content = (String) requestbody.get("content");
+        String agentId = requestbody.get("agentId") != null ? requestbody.get("agentId").toString() : null;
+        Integer score = requestbody.get("score") != null ? Integer.parseInt(requestbody.get("score").toString()) : null;
+        String content = requestbody.get("content") != null ? requestbody.get("content").toString() : null;
+        String chatid = UUID.randomUUID().toString();
+        if (agentId == null || score == null || content == null) {
+            return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "请求参数不完整"));
+        }
         LocalDateTime creattime = LocalDateTime.now();
 
         try {
-            evaluationMapper.addEvaluation(send_userId, agentId, score, content, String.valueOf(creattime));
+            evaluationMapper.addEvaluation(chatid,send_userId, agentId, score, content, String.valueOf(creattime));
             return ResponseEntity.ok(new ApiResponse<>(1, null, "发送评论成功"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));

@@ -49,4 +49,8 @@ public interface ChatRoomMapper {
     @Select("SELECT * FROM chatroom WHERE agentid = #{agentid} order by priority desc")
     List<ChatRoom> getChatRoomByAgentId(String agentid);
 
+    //通过客服id获取处理中的聊天室
+    @Select("SELECT * FROM chatroom WHERE agentid = #{agentid} and state = 'processing'")
+    List<ChatRoom> getProcessingChatRoomByAgentId(String agentid);
+
 }

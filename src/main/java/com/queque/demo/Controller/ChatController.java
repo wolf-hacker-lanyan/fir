@@ -11,10 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -29,6 +26,9 @@ public class ChatController {
     private AgentMapper agentMapper;
     @Autowired
     private MessageMapper messageMapper;
+    @Autowired
+    private SocketServer socketServer;
+
     //获取用户token的方法
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
@@ -45,7 +45,7 @@ public class ChatController {
     }
     // 生成 Token
     @PostMapping("/start")
-    public ResponseEntity<?> createToken(HttpServletRequest request) {
+    public ResponseEntity<?> createToken(HttpServletRequest request, @RequestBody Map requestbody) {
         Map<String, Object> result = new HashMap<>();
         //TODO:整理token验证逻辑
         String token = extractToken(request);
@@ -67,15 +67,47 @@ public class ChatController {
             if (user == null) {
                 return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, "用户不存在"));
             }
-            //TODO:补充多次创建聊天的判断
-            String roomid= String.valueOf(UUID.randomUUID());
-            ChatRoomManager.addChatRoom(roomid,token,"");
-            ChatRoom chatRoom=new ChatRoom();
-            chatRoom.setRoomId(roomid);
-            chatRoom.setUserid(String.valueOf(userId));
-            chatRoom.setCreattime(System.currentTimeMillis());
-            chatRoom.setState("waiting");
-            chatRoomMapper.insertChatRoom(chatRoom);
+
+            String roomid;
+            if (requestbody.get("roomId") != null) {
+                roomid =requestbody.get("roomId").toString();
+
+                if (chatRoomMapper.getChatRoomByUserId(userId) != null) {
+                    if (!chatRoomMapper.getChatRoomByUserId(userId).isEmpty()) {
+                        for (ChatRoom chatRoom : chatRoomMapper.getChatRoomByUserId(userId)) {
+                            if (Objects.equals(chatRoom.getRoomId(), roomid)) {
+                                System.out.println("用户进入已有房间，跳过判断");
+                                result.put("token", SocketTokenManager.createToken(token));
+                                result.put("roomId", roomid);
+                                // 返回成功响应
+                                return ResponseEntity.ok(new ApiResponse<>(1, result, "用户进入已有房间，跳过判断，获取sockettoken成功"));
+                            }
+                        }
+                    }
+                }
+
+                System.out.println(roomid);
+            }else {
+                if (chatRoomMapper.getChatRoomByUserId(userId) != null) {
+                    if (!chatRoomMapper.getChatRoomByUserId(userId).isEmpty()) {
+                        for (ChatRoom chatRoom : chatRoomMapper.getChatRoomByUserId(userId)) {
+                            if (!chatRoom.getState().equals("done")) {
+                                return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(1, null, "有一个未结束的会话"));
+                            }
+                        }
+                    }
+                }
+
+                roomid= String.valueOf(UUID.randomUUID());
+                ChatRoomManager.addChatRoom(roomid,token,"");
+                ChatRoom chatRoom=new ChatRoom();
+                chatRoom.setRoomId(roomid);
+                chatRoom.setUserid(String.valueOf(userId));
+                chatRoom.setCreattime(System.currentTimeMillis());
+                chatRoom.setState("waiting");
+                chatRoomMapper.insertChatRoom(chatRoom);
+            }
+
             result.put("token", SocketTokenManager.createToken(token));
             result.put("roomId", roomid);
             // 返回成功响应
@@ -93,6 +125,7 @@ public class ChatController {
         Map<String, Object> result = new HashMap<>();
 
         try {
+            System.out.println(requestbody);
             String roomId = requestbody.get("roomId").toString();
             System.out.println(roomId);
             ChatRoom chatRoom = chatRoomMapper.findByRoomId(roomId);
@@ -145,7 +178,13 @@ public class ChatController {
             }
             chatRoomMapper.updateRoomState(roomId, "done");
             chatRoomMapper.updateEndTime(roomId, System.currentTimeMillis());
-            agentMapper.setState(chatRoom.getAgentid(), "idle");
+            agentMapper.setCurrentAssignedTasks(chatRoom.getAgentid(), agentMapper.getCurrentAssignedTasks(chatRoom.getAgentid()) - 1);
+            Agent agent = agentMapper.getAgentById(chatRoom.getAgentid());
+            if (agent.getCurrentAssignedTasks() < agent.getMaxAssignedTasks()){
+                agentMapper.setState(chatRoom.getAgentid(), "idle");
+            }
+
+            socketServer.broadcastToRoom(roomId, "{\"type\":\"end\"}");
             // 返回成功响应
             return ResponseEntity.ok(new ApiResponse<>(1, null, "结束聊天成功"));
 

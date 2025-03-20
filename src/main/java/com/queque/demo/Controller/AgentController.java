@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/get/agent")
+@RequestMapping("/agent")
 public class AgentController {
     @Autowired
     private AgentMapper agentMapper;
@@ -30,7 +30,6 @@ public class AgentController {
         String skill_group_id = request.get("skill_group_id").toString();
         int maxAssignedTasks = Integer.parseInt(request.get("maxAssignedTasks").toString());//必须大于0
         int currentAssignedTasks = 0;
-        double saturation = 0.00;
         String state = getState(agentid);
 
         if (!(agentMapper.getAgentInfoByUserid(agentid)).isEmpty()) {
@@ -42,7 +41,7 @@ public class AgentController {
         }
 
         try {
-            agentMapper.addAgent(agentid, skill_group_id, maxAssignedTasks, currentAssignedTasks, saturation,false, state);
+            agentMapper.addAgent(agentid, skill_group_id, maxAssignedTasks, currentAssignedTasks,false, state);
             return ResponseEntity.ok(new ApiResponse<>(1, null, "添加客服成功"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.OK).body(new ApiResponse<>(0, null, e.getMessage()));
